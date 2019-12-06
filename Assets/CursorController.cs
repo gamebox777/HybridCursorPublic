@@ -6,10 +6,11 @@ using UnityEngine.EventSystems;
 /// カーソルをマウスでもコントローラー&キーボードでも操作できる様にする
 /// uGUIをそのまま使用したかったので、:EventSystems.BaseInputModule.PointerInputModuleを継承しました。
 /// [Unity 2018.3.6f1]
+/// 著作権放棄：ご自由にお使いください：public domain
 /// </summary>
-namespace ViewerCursorController
+namespace CursorController
 {
-	public class ViewerCursorController : PointerInputModule
+	public class CursorController : PointerInputModule
 	{
 		[Header("シーン内のカメラをセット")]
 		public Camera cameraMain;
@@ -62,6 +63,8 @@ namespace ViewerCursorController
 		[Header("デバッグ用テキスト")]
 		public Text textDebug;
 
+		public Vector2 tmpOffset;
+
 		/// <summary>
 		/// 入力デバイス
 		/// </summary>
@@ -74,11 +77,11 @@ namespace ViewerCursorController
 		protected override void Start()
 		{
 			//カーソル座標制限用座標計算
-			mMinPos.x = (boundaries.rect.width / 2f * -1f) + cursorRect.rect.width / 2f;
-			mMaxPos.x = (boundaries.rect.width / 2f);
+			mMinPos.x = (boundaries.rect.width / 2f) * -1f;
+			mMaxPos.x = (boundaries.rect.width / 2f) - cursorRect.rect.width / 2f;
 
-			mMinPos.y = (boundaries.rect.height / 2f * -1f);
-			mMaxPos.y = (boundaries.rect.height / 2f) - cursorRect.rect.height / 2f;
+			mMinPos.y = (boundaries.rect.height / 2f) * -1f + cursorRect.rect.height / 2;
+			mMaxPos.y = (boundaries.rect.height / 2f);
 
 			base.Start();
 			mPointerEventData = new PointerEventData(eventSystem);
@@ -89,14 +92,9 @@ namespace ViewerCursorController
 		/// </summary>
 		public override void Process()
 		{
-			//Vector2 screenVec;
 			Vector3 tPos = cursorObject.transform.position;
 			Vector3 screenPos = cameraMain.WorldToScreenPoint(tPos);
 
-			screenPos.x = screenPos.x - (cursorRect.rect.width / 2f);
-			screenPos.y = screenPos.y + (cursorRect.rect.height / 2f);
-
-			// Raycasting
 			mPointerEventData.position = screenPos;
 
 			eventSystem.RaycastAll(mPointerEventData, this.m_RaycastResultCache);
@@ -215,13 +213,6 @@ namespace ViewerCursorController
 		{
 			//EventはOnGUIの中でのみ受け取れるのでここで実行
 			DeviceChangeCheck();
-
-
-			//デバッグテキスト
-			if (textDebug != null)
-			{
-			}
-
 		}
 
 		/// <summary>
